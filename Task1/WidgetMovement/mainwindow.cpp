@@ -1,15 +1,18 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QPropertyAnimation>
+#include <iostream>
 
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    std::srand(std::time(nullptr));
     resize(300, 600);
     m_timer = new QTimer(this);
-    connect(m_timer, &QTimer::timeout, this, [this](){
+    int appearanceTime = 100 + (std::rand() % 900);
+    connect(m_timer, &QTimer::timeout, this, [this, &appearanceTime](){
         QPushButton* btn = new QPushButton("*", this);
         btn->resize(40, 40);
         btn->show();
@@ -35,8 +38,10 @@ MainWindow::MainWindow(QWidget *parent)
         });
 
         anim->start();
+        appearanceTime = 100 + (std::rand() % 900);
+        std::cout << appearanceTime << std::endl;
+        m_timer->start(appearanceTime);
     });
-    int appearanceTime = 100 + (std::rand() % 900);
     m_timer->start(appearanceTime);
 }
 
