@@ -39,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
 
         anim->start();
         appearanceTime = 100 + (std::rand() % 900);
-        std::cout << appearanceTime << std::endl;
         m_timer->start(appearanceTime);
     });
     m_timer->start(appearanceTime);
