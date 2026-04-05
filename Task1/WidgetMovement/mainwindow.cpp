@@ -1,48 +1,54 @@
+#include <QTimer>
+#include <QPushButton>
+#include <QPropertyAnimation>
+
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    static constexpr int minAppearanceInterval = 100;
+    static constexpr int maxAppearanceInterval = 1000;
+    static constexpr int sizeButton = 40;
+    static constexpr int fps = 1000 / 60;
+    static int appearanceTime = 1000;
+    static int gameLoopTimer = 0;
+
     std::srand(std::time(nullptr));
     resize(300, 600);
-    m_timer = std::make_unique<QTimer>(this);
+    m_timer = new QTimer(this);
     m_timer->start(fps);
-    connect(m_timer.get(), &QTimer::timeout, this, [this](){
-        for (auto it = buttons.begin(); it != buttons.end(); ) {
-            auto &btn = it->first;
-            int speed = it->second;
-            btn->move(btn->x(), btn->y() + speed);
-            if (btn->y() + btn->height() > height()) {
-                setWindowTitle(QStringLiteral("you LOSE!!!"));
-                setStyleSheet(QStringLiteral("QMainWindow { background-color: red; }"));
-                btn->deleteLater();
-                it = buttons.erase(it);
-            }
-            else
-                ++it;
-        }
-        if (gameLoopTimer > appearanceTime) {
-            gameLoopTimer = 0;
-            appearanceTime = QRandomGenerator64::global()->bounded(minAppearanceInterval, maxAppearanceInterval);
-            std::unique_ptr<QPushButton> btn = std::make_unique<QPushButton>("*", this);
-            btn->resize(sizeButton, sizeButton);
-            int randX = QRandomGenerator64::global()->bounded(width() - btn->width());
-            int randY = QRandomGenerator64::global()->bounded(100);
-            btn->move(randX, randY);
-            connect(btn.get(), &QPushButton::clicked, this, [this, curBtn = btn.get()](){
-                for (auto it = buttons.begin(); it != buttons.end(); ++it) {
-                    if (it->first.get() == curBtn) {
-                        it->first->deleteLater();
-                        buttons.erase(it);
-                        break;
-                    }
-                }
-            });
-            btn->show();
-            int randSpeed = QRandomGenerator64::global()->bounded(minSpeed, maxSpeed);
-            buttons.push_back(std::make_pair(std::move(btn), randSpeed));
-        }
+    connect(m_timer, &QTimer::timeout, this, [this](){
         gameLoopTimer += fps;
+        if (gameLoopTimer < appearanceTime)
+            return;
+        gameLoopTimer = 0;
+        appearanceTime = minAppearanceInterval +
+                         (std::rand() % (maxAppearanceInterval - minAppearanceInterval));
+        QPushButton* btn = new QPushButton("*", this);
+        btn->resize(sizeButton, sizeButton);
+        btn->show();
+
+        int randX = std::rand() % (this->width() - btn->width());
+        int randY = std::rand() % 100;
+        int randDuration = 5000 + (std::rand() % 5000);
+
+        QPropertyAnimation* anim = new QPropertyAnimation(btn, "pos", this);
+        anim->setDuration(randDuration);
+        anim->setStartValue(QPoint(randX, randY));
+        anim->setEndValue(QPoint(randX, this->height()));
+        connect(btn, &QPushButton::clicked, this, [btn, anim](){
+            anim->stop();
+            btn->deleteLater();
+            anim->deleteLater();
+        });
+        connect(anim, &QPropertyAnimation::finished, this, [btn, anim, this](){
+            this->setWindowTitle("you LOSE!!!");
+            this->setStyleSheet("QMainWindow { background-color: red; }");
+            btn->deleteLater();
+            anim->deleteLater();
+        });
+        anim->start();
     });
 }
 
