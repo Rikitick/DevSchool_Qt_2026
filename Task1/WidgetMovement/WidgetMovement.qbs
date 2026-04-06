@@ -1,7 +1,12 @@
 import qbs.FileInfo
 
 QtApplication {
+    Depends { name: "cpp" }
+    Depends { name: "Qt.core" }
+    Depends { name: "Qt.gui" }
     Depends { name: "Qt.widgets" }
+    Depends { name: "Qt.qml" }
+    Depends { name: "Qt.quick" }
 
     cpp.defines: [
         // You can make your code fail to compile if it uses deprecated APIs.
@@ -11,6 +16,7 @@ QtApplication {
 
     files: [
         "main.cpp",
+        "main.qml",
         "mainwindow.cpp",
         "mainwindow.h",
     ]
